@@ -1,6 +1,6 @@
 <div align="center">
 
-# 🐙 `tuipr`
+# 🔀 `tuipr`
 
 **A keyboard-driven Pull Request Lifecycle Manager for your terminal.**
 *Built with Go, Charm Bubbletea, Catppuccin Mocha, and [Pi](https://pi.pi-agent.com/).*
