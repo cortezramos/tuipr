@@ -15,6 +15,11 @@ type Flags struct {
 	Help       bool
 }
 
+// resetFlags creates a fresh flag set for testing.
+func resetFlags() {
+	flag.CommandLine = flag.NewFlagSet("tuipr", flag.ExitOnError)
+}
+
 // parseFlags parses command-line arguments.
 func parseFlags() Flags {
 	flag.Usage = func() {

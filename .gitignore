@@ -1,0 +1,22 @@
+# Binaries
+tuipr
+tuipr.exe
+tuipr-bin
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Go
+vendor/
+*.test
+coverage.txt
+
+# Build
+dist/
