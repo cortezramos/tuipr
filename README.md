@@ -2,8 +2,8 @@
 
 # 🐙 `tuipr`
 
-**A keyboard-driven Pull Request Lifecycle Manager for your terminal.**  
-*Built with Go, Charm Bubbletea, and Catppuccin Mocha.*
+**A keyboard-driven Pull Request Lifecycle Manager for your terminal.**
+*Built with Go, Charm Bubbletea, Catppuccin Mocha, and [Pi](https://pi.pi-agent.com/).*
 
 [![Go Version](https://img.shields.io/github/go-mod/go-version/erickcortez/tuipr?style=flat-square&color=cba6f7)](https://golang.org)
 [![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square&color=89b4fa)](LICENSE)
