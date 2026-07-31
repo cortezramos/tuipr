@@ -29,7 +29,14 @@
 ```bash
 git clone https://github.com/erickcortez/tuipr.git
 cd tuipr
-go build -o tuipr .
+go install ./cmd/tuipr
+```
+
+Or build manually:
+```bash
+git clone https://github.com/erickcortez/tuipr.git
+cd tuipr
+go build -o tuipr ./cmd/tuipr
 mv tuipr /usr/local/bin/
 ```
 
