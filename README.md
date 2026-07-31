@@ -1,100 +1,134 @@
-# tuipr - PR Lifecycle TUI Manager
+<div align="center">
 
-Un gestor de Pull Requests en terminal inspirado en **LazyGit** y **tuicr**, con navegación estilo Neovim y colores Catppuccin Mocha.
+# 🐙 `tuipr`
 
-## Características
+**A keyboard-driven Pull Request Lifecycle Manager for your terminal.**  
+*Built with Go, Charm Bubbletea, and Catppuccin Mocha.*
 
-- 🎨 **Colores Catppuccin Mocha** - Paleta de colores elegante
-- ⌨️ **Navegación estilo LazyGit** - Paneles numerados (1, 2, 3)
-- 📝 **Editor estilo Vim** - Modo Normal/Insert con `i` y `Esc`
-- 🔗 **Integración con `gh`** - Lista, crea y mergea PRs directamente
-- 🛠️ **Editor de conflictos** - Abre Neovim para resolver conflictos
+[![Go Version](https://img.shields.io/github/go-mod/go-version/erickcortez/tuipr?style=flat-square&color=cba6f7)](https://golang.org)
+[![License](https://img.shields.io/badge/license-MIT-blue?style=flat-square&color=89b4fa)](LICENSE)
+[![Theme](https://img.shields.io/badge/theme-Catppuccin%20Mocha-fab387?style=flat-square)](https://github.com/catppuccin/catppuccin)
 
-## Instalación
+</div>
+
+---
+
+## ✨ Features
+
+- **🎨 Catppuccin Mocha Theme** — Elegant, high-contrast terminal aesthetic
+- **⌨️ LazyGit-style Navigation** — Numbered panels (1, 2, 3) + Vim keys (`j/k`, `Tab`)
+- **📝 Vim Modes** — Normal/Insert mode with `i` and `Esc`
+- **🔗 GitHub CLI (`gh`)** — List, create, and merge PRs directly
+- **⚠️ Conflict Detection** — Visual indicators with instant `nvim` hotkey
+- **🔀 Flexible Merging** — Merge Commit, Squash, or Rebase strategies
+
+---
+
+## 📦 Installation
 
 ```bash
-# Clonar el repositorio
-git clone https://github.com/ecortez/tuipr.git
+git clone https://github.com/erickcortez/tuipr.git
 cd tuipr
-
-# Compilar
 go build -o tuipr .
-
-# Instalar (opcional)
 mv tuipr /usr/local/bin/
 ```
 
-## Uso
+### Requirements
+
+- Go 1.21+
+- GitHub CLI ([`gh`](https://cli.github.com/)) authenticated
+- Git
+- Terminal with 256-color support
+
+---
+
+## 🚀 Usage
 
 ```bash
-tuipr              # Abrir dashboard principal
-tuipr -c           # Ir directo a Create PR
-tuipr -m           # Ir a Merge (seleccionar PR)
-tuipr -m 134       # Merge directo del PR #134
-tuipr --help       # Mostrar ayuda
+tuipr          # Open main dashboard
+tuipr -c       # Open Create PR directly
+tuipr -m       # Open Merge PR screen
+tuipr -m 134   # Merge PR #134 directly
 ```
 
-## Navegación
+---
+
+## ⌨️ Keybindings
 
 ### Dashboard
-| Tecla | Acción |
-|-------|--------|
-| `1` | Ir al panel de PRs |
-| `2` | Ir al panel de Detalles |
-| `3` | Ir al panel de Status/Conflicts |
-| `j` / `k` | Navegar arriba/abajo |
-| `c` | Crear nuevo PR |
-| `m` | Merge PR seleccionado |
-| `e` | Abrir nvim para conflictos |
-| `r` | Refrescar lista |
-| `q` | Salir |
+
+| Key | Action |
+| :--- | :--- |
+| `1` `2` `3` | Switch between PRs / Details / Conflicts panels |
+| `j` / `k` | Navigate up / down |
+| `c` | Open Create PR |
+| `m` | Open Merge PR |
+| `e` | Open nvim for conflicts |
+| `r` | Refresh list |
+| `q` | Quit |
 
 ### Create PR
-| Tecla | Acción |
-|-------|--------|
-| `i` | Modo Insert |
-| `Esc` | Volver a Normal |
-| `j` / `k` | Navegar campos |
-| `Tab` | Cambiar entre paneles |
-| `Ctrl+s` | Crear PR |
+
+| Key | Action |
+| :--- | :--- |
+| `1` `2` `3` | Switch Fields / Title / Description panels |
+| `Tab` | Next panel |
+| `i` | Enter Insert mode |
+| `Esc` | Return to Normal |
+| `Enter` | Select target branch |
+| `Ctrl+s` | Submit PR |
 
 ### Merge PR
-| Tecla | Acción |
-|-------|--------|
-| `1` | Merge Commit |
-| `2` | Squash |
-| `3` | Rebase |
-| `d` | Toggle delete remote |
-| `D` | Toggle delete local |
-| `Enter` | Ejecutar merge |
 
-## Diseño
+| Key | Action |
+| :--- | :--- |
+| `1` `2` `3` `4` | Switch Merge / Options / Checklist / Commit panels |
+| `Tab` / `Shift+Tab` | Next / Previous panel |
+| `j` / `k` | Navigate options |
+| `Space` | Toggle / Select |
+| `i` | Enter Insert mode for commit |
+| `Ctrl+s` | Execute merge |
+
+---
+
+## ⚙️ Configuration
+
+`tuipr` reads from `tuipr.toml` in the current directory or `~/.config/tuipr/config.toml`:
+
+```toml
+default_target_branch = "master"
+transparent_panels = true
+```
+
+---
+
+## 📋 Layout
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│  TUIPR - PR Lifecycle Manager | Branch: feature/auth        │
+│  TUIPR | Branch: feature/auth | 5 PRs                        │
 │  ─────────────────────────────────────────────────────────  │
 │  ┌────────────┐  ┌──────────────┐  ┌─────────────────┐    │
-│  │ (1) PRs    │  │ (2) Details  │  │ (3) Conflicts   │    │
-│  │ ────────── │  │ ──────────── │  │ ─────────────── │    │
-│  │ 🟢 #142    │  │ Fix auth     │  │ CI Status       │    │
-│  │ ⚠️ #141    │  │ Author: @you │  │ ✓ Passed        │    │
-│  │ 🟢 #140    │  │ Reviews: ✓   │  │ Conflicts       │    │
-│  │            │  │              │  │ ✓ No conflicts  │    │
+│  │ (1) PRs    │  │ (2) Details   │  │ (3) Status      │    │
+│  │ ────────── │  │ ───────────── │  │ ──────────────── │    │
+│  │ -> #142 *  │  │ Fix auth      │  │ CI Checks [x]   │    │
+│  │   #141 W   │  │ Author: @you  │  │ Reviews (1/1) [x]│    │
+│  │   #140 *   │  │ Branch: ->main│  │ Conflicts [x]    │    │
 │  └────────────┘  └──────────────┘  └─────────────────┘    │
 │  ─────────────────────────────────────────────────────────  │
-│  [1] PRs [2] Details [3] Conflicts                          │
-│  [j/k] Navigate  [c] Create  [m] Merge  [e] nvim  [r] Refresh │
+│  [1] PRs  [2] Details  [3] Status                            │
+│  [j/k] Nav  [c] Create  [m] Merge  [q] Quit                  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-## Requisitos
+---
 
-- Go 1.21+
-- GitHub CLI (`gh`)
-- Neovim (para resolver conflictos)
-- Terminal con soporte para 256 colores
+## 📄 License
 
-## Licencia
+MIT License - see [LICENSE](LICENSE) file.
 
-MIT
+---
+
+<div align="center">
+Made with ❤️ for Terminal Power Users.
+</div>
