@@ -1,0 +1,8 @@
+# tuipr configuration
+
+# Default target branch when creating PRs
+default_target_branch = "master"
+
+# Enable transparent panels (no background color in inactive panels)
+# Set to false for opaque panels
+transparent_panels = true
