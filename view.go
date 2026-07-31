@@ -50,10 +50,11 @@ func (m *Model) dashboardView() string {
 }
 
 func (m *Model) dashboardHeader() string {
+	prCount := len(m.PRs)
 	return fmt.Sprintf(" %s | Branch: %s | %s ",
 		TitleStyle.Render("TUIPR"),
 		BranchStyle.Render(m.CurrentBranch),
-		MutedStyle.Render(fmt.Sprintf("%d PRs", len(m.PRs))))
+		MutedStyle.Render(fmt.Sprintf("%d PRs", prCount)))
 }
 
 func (m *Model) renderPRsPanel() string {
@@ -81,9 +82,9 @@ func (m *Model) renderPRsPanel() string {
 func (m *Model) renderPRItem(pr PR, sel bool) string {
 	icon, iconStyle := getMergeStatusIcon(pr.Mergeable)
 	prNum := PRNumberStyle.Render(fmt.Sprintf("#%d", pr.Number))
-	pref := "  "
+	prefix := "  "
 	if sel {
-		pref = "-> "
+		prefix = "-> "
 	}
 	title := truncate(pr.Title, 22)
 	if sel {
@@ -92,7 +93,7 @@ func (m *Model) renderPRItem(pr PR, sel bool) string {
 		title = NormalItemStyle.Render(title)
 	}
 	return fmt.Sprintf("%s%s %s %s %s %s",
-		pref, iconStyle.Render(icon), prNum, iconStyle.Render("|"), title, getReviewStatus(pr.ReviewDecision))
+		prefix, iconStyle.Render(icon), prNum, iconStyle.Render("|"), title, getReviewStatus(pr.ReviewDecision))
 }
 
 func (m *Model) renderDetailsPanel() string {
@@ -348,8 +349,7 @@ func (m *Model) mergePRHeader() string {
 func (m *Model) renderMergeStrategyPanel() string {
 	var items []string
 	items = append(items, m.mergePanelTitle(1, "Merge"))
-	
-	// Solo mostrar [x] donde está la selección guardada (MergeStrategy)
+
 	items = append(items, m.mergeCursorItem(0, m.MergeCursor == 0, "Merge Commit", m.MergeStrategy == StrategyMergeCommit))
 	items = append(items, m.mergeCursorItem(1, m.MergeCursor == 1, "Squash", m.MergeStrategy == StrategySquash))
 	items = append(items, m.mergeCursorItem(2, m.MergeCursor == 2, "Rebase", m.MergeStrategy == StrategyRebase))
@@ -365,7 +365,7 @@ func (m *Model) renderMergeStrategyPanel() string {
 func (m *Model) renderMergeOptionsPanel() string {
 	var items []string
 	items = append(items, m.mergePanelTitle(2, "Options"))
-	
+
 	items = append(items, m.mergeCursorItem(0, m.OptionsCursor == 0, "Delete remote", m.DeleteRemoteBranch))
 	items = append(items, m.mergeCursorItem(1, m.OptionsCursor == 1, "Delete local", m.DeleteLocalBranch))
 
@@ -382,15 +382,12 @@ func (m *Model) renderMergeChecklistPanel() string {
 	items = append(items, m.mergePanelTitle(3, "Checklist"))
 	items = append(items, "")
 
-	// CI (info)
 	items = append(items, infoItem("CI Checks", true))
 
-	// Reviews
 	approved := m.ReviewsInfo.Approved
 	required := m.ReviewsInfo.Required
 	items = append(items, infoItem(fmt.Sprintf("Reviews (%d/%d)", approved, required), approved >= required))
 
-	// Conflicts
 	hasConflicts := len(m.PRs) > 0 && m.SelectedPR < len(m.PRs) && m.PRs[m.SelectedPR].Mergeable == "CONFLICTING"
 	items = append(items, infoItem("Conflicts", !hasConflicts))
 	if hasConflicts {
@@ -438,60 +435,55 @@ func (m *Model) mergePanelTitle(num int, name string) string {
 }
 
 func (m *Model) mergeCursorItem(cursor int, hasCursor bool, name string, selected bool) string {
-	// Muestra -> y [x]/[ ] según estado
 	prefix := "  "
 	arrow := "  "
 	if hasCursor {
 		prefix = ""
 		arrow = "-> "
 	}
-	
-	// Mostrar [x] o [ ] según si está seleccionado
+
 	selectedStr := "[ ]"
 	selectedStyle := MutedStyle
 	if selected {
 		selectedStr = "[x]"
 		selectedStyle = GreenStyle
 	}
-	
-	// Si tiene cursor, el nombre también se resalta
+
 	nameStyle := MutedStyle
 	if hasCursor && selected {
 		nameStyle = GreenStyle
 	}
-	
+
 	return fmt.Sprintf("%s%s %s %s", prefix, arrow, selectedStyle.Render(selectedStr), nameStyle.Render(name))
 }
 
 func infoItem(name string, ok bool) string {
 	icon := "[ ]"
-	style := MutedStyle
+	style := RedStyle
 	if ok {
 		icon = "[x]"
 		style = GreenStyle
-	} else {
-		style = RedStyle
 	}
 	return fmt.Sprintf("  %s %s", MutedStyle.Render(icon), style.Render(name))
 }
 
 func commitMessageField(active, editing bool, msg string) string {
-	pref := "  "
+	prefix := "  "
 	arrow := "  "
 	if active {
-		pref = ""
+		prefix = ""
 		arrow = "-> "
 	}
 	if msg == "" {
 		if active && editing {
-			return pref + arrow + InsertInputStyle.Render("") + MutedStyle.Render("_")
+			return prefix + arrow + InsertInputStyle.Render("") + MutedStyle.Render("_")
 		}
-		return pref + arrow + MutedStyle.Render("(optional)")
+		return prefix + arrow + MutedStyle.Render("(optional)")
 	}
 	if active && editing {
-		return pref + arrow + InsertInputStyle.Render(msg) + MutedStyle.Render("_")
+		return prefix + arrow + InsertInputStyle.Render(msg) + MutedStyle.Render("_")
 	}
-	return pref + arrow + NormalItemStyle.Render(truncate(msg, 35))
+	return prefix + arrow + NormalItemStyle.Render(truncate(msg, 35))
 }
 
 func (m *Model) mergePRFooter() string {
@@ -502,7 +494,6 @@ func (m *Model) mergePRFooter() string {
 	p3 := PanelInactiveStyle.Render("[3] Checklist")
 	p4 := PanelInactiveStyle.Render("[4] Commit")
 
-	// Highlight active panel
 	switch m.MergePanel {
 	case MergePanelStrategy:
 		p1 = PanelActiveStyle.Render("[1] Merge")
@@ -533,18 +524,18 @@ func (m *Model) branchListView() string {
 	} else {
 		for i, b := range m.Branches {
 			sel := i == m.SelectedBranch
-			pref := "  "
+			prefix := "  "
 			if sel {
-				pref = "-> "
+				prefix = "-> "
 			}
 			name := b.Name
 			if b.IsCurrent {
 				name += " " + MutedStyle.Render("(current)")
 			}
 			if sel {
-				out.WriteString(fmt.Sprintf("  %s%s %s\n", pref, GreenStyle.Render("*"), SelectedItemStyle.Render(name)))
+				out.WriteString(fmt.Sprintf("  %s%s %s\n", prefix, GreenStyle.Render("*"), SelectedItemStyle.Render(name)))
 			} else {
-				out.WriteString(fmt.Sprintf("  %s  %s\n", pref, NormalItemStyle.Render(name)))
+				out.WriteString(fmt.Sprintf("  %s  %s\n", prefix, NormalItemStyle.Render(name)))
 			}
 		}
 	}

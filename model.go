@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -11,9 +12,10 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-// ViewState
+// ViewState represents the current view in the application.
 type ViewState int
 
+// View states.
 const (
 	ViewDashboard ViewState = iota
 	ViewCreatePR
@@ -21,52 +23,57 @@ const (
 	ViewBranchList
 )
 
-// PanelIndex para dashboard
+// PanelIndex represents panels in the dashboard view.
 type PanelIndex int
 
+// Dashboard panels.
 const (
 	PanelPRs PanelIndex = iota
 	PanelDetails
 	PanelConflicts
 )
 
-// CreatePanel para Create PR
+// CreatePanel represents panels in the Create PR view.
 type CreatePanel int
 
+// Create PR panels.
 const (
 	CreateFieldsPanel CreatePanel = iota
 	CreateTitlePanel
 	CreateDescPanel
 )
 
-// CreateField para navegación en Fields
+// CreateField represents fields in the Create PR form.
 type CreateField int
 
+// Create PR form fields.
 const (
 	FieldSource CreateField = iota
 	FieldTarget
 )
 
-// MergePanel para navegación en Merge PR (4 paneles)
+// MergePanel represents panels in the Merge PR view.
 type MergePanel int
 
+// Merge PR panels.
 const (
-	MergePanelStrategy MergePanel = iota // 0: Merge strategy
-	MergePanelOptions                    // 1: Delete options
-	MergePanelChecklist                  // 2: Checklist (solo informativo)
-	MergePanelCommit                     // 3: Commit message
+	MergePanelStrategy MergePanel = iota // Merge strategy selection.
+	MergePanelOptions                   // Delete branch options.
+	MergePanelChecklist                 // Information checklist.
+	MergePanelCommit                    // Commit message input.
 )
 
-// Strategy dentro del panel de Merge
+// MergeStrategy represents the git merge strategy.
 type MergeStrategy int
 
+// Merge strategies.
 const (
 	StrategyMergeCommit MergeStrategy = iota
 	StrategySquash
 	StrategyRebase
 )
 
-// PR
+// PR represents a GitHub pull request.
 type PR struct {
 	Number         int    `json:"number"`
 	Title         string `json:"title"`
@@ -81,26 +88,39 @@ type PR struct {
 	URL string `json:"url"`
 }
 
-// Reviews info
+// ReviewsInfo contains review statistics for a PR.
 type ReviewsInfo struct {
 	Approved int
 	Total    int
 	Required int
 }
 
-// Branch
+// Branch represents a git branch.
 type Branch struct {
 	Name      string
 	IsCurrent bool
 }
 
-// Config
+// Config represents application configuration.
 type Config struct {
 	DefaultTargetBranch string `toml:"default_target_branch"`
 	TransparentPanels   bool   `toml:"transparent_panels"`
 }
 
-// Model
+// Error definitions.
+var (
+	ErrNoTitle        = errors.New("title is required")
+	ErrNoPRSelected   = errors.New("no PR selected")
+	ErrPRHasConflicts = errors.New("cannot merge: has conflicts")
+)
+
+// Mode constants.
+const (
+	modeNormal = "normal"
+	modeInsert = "insert"
+)
+
+// Model represents the application state.
 type Model struct {
 	ViewState ViewState
 
@@ -128,19 +148,19 @@ type Model struct {
 	SelectedBranch  int
 
 	// Merge PR
-	MergeStrategy      MergeStrategy
+	MergeStrategy       MergeStrategy
 	DeleteRemoteBranch bool
-	DeleteLocalBranch bool
-	CommitMessage     string
-	MergePanel        MergePanel
-	MergeMode         string
-	ReviewsInfo       ReviewsInfo
+	DeleteLocalBranch  bool
+	CommitMessage      string
+	MergePanel         MergePanel
+	MergeMode          string
+	ReviewsInfo        ReviewsInfo
 
-	// Cursores de navegación dentro de cada panel
-	MergeCursor       int // 0-2: Merge Commit, Squash, Rebase
-	OptionsCursor     int // 0-1: Delete remote, Delete local
+	// Navigation cursors within panels.
+	MergeCursor   int // 0-2: Merge Commit, Squash, Rebase.
+	OptionsCursor int // 0-1: Delete remote, Delete local.
 
-	// PR Status
+	// PR Status.
 	PRMergeStatus struct {
 		HasConflicts bool
 		Conflicts    []string
@@ -152,12 +172,12 @@ type Model struct {
 	// Config
 	Config Config
 
-	// Mensajes
+	// Messages.
 	Error     string
 	StatusMsg string
 }
 
-// NewModel
+// NewModel creates a new Model with the given flags.
 func NewModel(flags Flags) *Model {
 	config := loadConfig()
 
@@ -176,12 +196,12 @@ func NewModel(flags Flags) *Model {
 		m.ViewState = ViewCreatePR
 		m.CreatePanel = CreateFieldsPanel
 		m.CreateField = FieldTarget
-		m.CreateMode = "normal"
+		m.CreateMode = modeNormal
 	} else if flags.MergePR {
 		m.ViewState = ViewMergePR
 		m.MergePanel = MergePanelStrategy
 		m.MergeStrategy = StrategyMergeCommit
-		m.MergeMode = "normal"
+		m.MergeMode = modeNormal
 		if flags.MergePRNum > 0 {
 			m.SelectedPR = flags.MergePRNum
 		}
@@ -190,7 +210,7 @@ func NewModel(flags Flags) *Model {
 	return m
 }
 
-// loadConfig
+// loadConfig loads configuration from known paths.
 func loadConfig() Config {
 	config := Config{
 		DefaultTargetBranch: "master",
@@ -215,7 +235,7 @@ func loadConfig() Config {
 	return config
 }
 
-// Init
+// Init initializes the model with background commands.
 func (m *Model) Init() tea.Cmd {
 	return tea.Batch(
 		m.fetchCurrentBranch(),
@@ -224,7 +244,7 @@ func (m *Model) Init() tea.Cmd {
 	)
 }
 
-// fetchCurrentBranch
+// fetchCurrentBranch retrieves the current git branch.
 func (m *Model) fetchCurrentBranch() tea.Cmd {
 	return func() tea.Msg {
 		cmd := exec.Command("git", "branch", "--show-current")
@@ -237,7 +257,7 @@ func (m *Model) fetchCurrentBranch() tea.Cmd {
 	}
 }
 
-// fetchBranches
+// fetchBranches retrieves all git branches.
 func (m *Model) fetchBranches() tea.Cmd {
 	return func() tea.Msg {
 		exec.Command("git", "fetch", "--all").Run()
@@ -245,7 +265,7 @@ func (m *Model) fetchBranches() tea.Cmd {
 		cmd := exec.Command("git", "branch", "-a", "--format=%(refname:short)")
 		out, err := cmd.Output()
 		if err != nil {
-			return BranchesMsg{Branches: nil}
+			return BranchesMsg{}
 		}
 
 		current := m.CurrentBranch
@@ -271,7 +291,7 @@ func (m *Model) fetchBranches() tea.Cmd {
 	}
 }
 
-// fetchPRs
+// fetchPRs retrieves open pull requests from GitHub.
 func (m *Model) fetchPRs() tea.Cmd {
 	return func() tea.Msg {
 		m.LoadingPRs = true
@@ -299,7 +319,7 @@ func (m *Model) fetchPRs() tea.Cmd {
 	}
 }
 
-// fetchPRReviews obtiene reviews de un PR
+// fetchPRReviews retrieves review information for a PR.
 func (m *Model) fetchPRReviews(prNumber int) tea.Cmd {
 	return func() tea.Msg {
 		cmd := exec.Command("gh", "pr", "view", fmt.Sprintf("%d", prNumber),
@@ -313,7 +333,7 @@ func (m *Model) fetchPRReviews(prNumber int) tea.Cmd {
 
 		var raw struct {
 			ReviewDecision string `json:"reviewDecision"`
-			Reviews       []struct {
+			Reviews        []struct {
 				State string `json:"state"`
 			} `json:"reviews"`
 		}
@@ -337,36 +357,42 @@ func (m *Model) fetchPRReviews(prNumber int) tea.Cmd {
 	}
 }
 
-// Mensajes
+// BranchMsg indicates the current branch was updated.
 type BranchMsg struct {
 	Branch string
 }
 
+// BranchesMsg contains the list of git branches.
 type BranchesMsg struct {
 	Branches []Branch
 }
 
+// PRsMsg contains the list of pull requests.
 type PRsMsg struct {
 	PRs   []PR
 	Error string
 }
 
+// ReviewsMsg contains review statistics for a PR.
 type ReviewsMsg struct {
 	Approved int
 	Total    int
 	Required int
 }
 
+// CreatePRResultMsg indicates the result of creating a PR.
 type CreatePRResultMsg struct {
 	Success  bool
 	PRNumber int
 	Error    string
 }
 
+// MergeResultMsg indicates the result of merging a PR.
 type MergeResultMsg struct {
 	Success bool
 	Message string
 	Error   string
 }
 
+// RefreshMsg triggers a data refresh.
 type RefreshMsg struct{}

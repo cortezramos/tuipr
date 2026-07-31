@@ -9,7 +9,7 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 )
 
-// Update maneja los mensajes/eventos
+// Update handles incoming messages and returns the updated model.
 func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
@@ -68,10 +68,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, nil
 }
 
-// handleKeyMsg
+// handleKeyMsg processes keyboard input.
 func (m *Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	inInsertMode := (m.ViewState == ViewCreatePR && m.CreateMode == "insert") ||
-		(m.ViewState == ViewMergePR && m.MergeMode == "insert")
+	inInsertMode := (m.ViewState == ViewCreatePR && m.CreateMode == modeInsert) ||
+		(m.ViewState == ViewMergePR && m.MergeMode == modeInsert)
 
 	switch msg.String() {
 	case "ctrl+c":
@@ -81,16 +81,14 @@ func (m *Model) handleKeyMsg(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			m.handleCharInput(msg)
 			return m, nil
 		}
-		if m.ViewState == ViewDashboard || m.ViewState == ViewBranchList {
+		if m.ViewState == ViewDashboard || m.ViewState == ViewBranchList ||
+			m.ViewState == ViewCreatePR || m.ViewState == ViewMergePR {
 			return m, tea.Quit
 		}
-		if m.ViewState == ViewCreatePR || m.ViewState == ViewMergePR {
-			return m, tea.Quit
-		}
-	
+
 	case "tab", "shift+tab":
-		// Solo manejar Tab en Merge PR
-		if m.ViewState == ViewMergePR && m.MergeMode != "insert" {
+		// Only handle Tab in Merge PR view.
+		if m.ViewState == ViewMergePR && m.MergeMode != modeInsert {
 			return m.handleMergeTabKeys(msg.String())
 		}
 	}
@@ -139,13 +137,13 @@ func (m *Model) handleDashboardKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.ViewState = ViewCreatePR
 		m.CreatePanel = CreateFieldsPanel
 		m.CreateField = FieldTarget
-		m.CreateMode = "normal"
+		m.CreateMode = modeNormal
 
 	case "m":
 		if len(m.PRs) > 0 && m.SelectedPR < len(m.PRs) {
 			m.ViewState = ViewMergePR
 			m.MergePanel = MergePanelStrategy
-			m.MergeMode = "normal"
+			m.MergeMode = modeNormal
 			return m, m.fetchPRReviews(m.PRs[m.SelectedPR].Number)
 		}
 
@@ -166,15 +164,15 @@ func (m *Model) handleDashboardKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 
 func (m *Model) handleCreatePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 	if msg.String() == "esc" {
-		if m.CreateMode == "insert" {
-			m.CreateMode = "normal"
+		if m.CreateMode == modeInsert {
+			m.CreateMode = modeNormal
 		} else {
 			m.ViewState = ViewDashboard
 		}
 		return m, nil
 	}
 
-	if m.CreateMode == "normal" {
+	if m.CreateMode == modeNormal {
 		switch msg.String() {
 		case "1":
 			m.CreatePanel = CreateFieldsPanel
@@ -194,21 +192,17 @@ func (m *Model) handleCreatePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 			}
 
 		case "j":
-			if m.CreatePanel == CreateFieldsPanel {
-				if m.CreateField == FieldSource {
-					m.CreateField = FieldTarget
-				}
+			if m.CreatePanel == CreateFieldsPanel && m.CreateField == FieldSource {
+				m.CreateField = FieldTarget
 			}
 
 		case "k":
-			if m.CreatePanel == CreateFieldsPanel {
-				if m.CreateField == FieldTarget {
-					m.CreateField = FieldSource
-				}
+			if m.CreatePanel == CreateFieldsPanel && m.CreateField == FieldTarget {
+				m.CreateField = FieldSource
 			}
 
 		case "i":
-			m.CreateMode = "insert"
+			m.CreateMode = modeInsert
 
 		case "enter":
 			if m.CreatePanel == CreateFieldsPanel && m.CreateField == FieldTarget {
@@ -223,8 +217,8 @@ func (m *Model) handleCreatePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Modo Insert
-	if m.CreateMode == "insert" {
+	// Insert mode.
+	if m.CreateMode == modeInsert {
 		switch msg.String() {
 		case "enter":
 			if m.CreatePanel == CreateDescPanel {
@@ -237,13 +231,13 @@ func (m *Model) handleCreatePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		case "tab":
 			switch m.CreatePanel {
 			case CreateTitlePanel:
-				m.CreateMode = "normal"
+				m.CreateMode = modeNormal
 				m.CreatePanel = CreateDescPanel
 			case CreateDescPanel:
-				m.CreateMode = "normal"
+				m.CreateMode = modeNormal
 				m.CreatePanel = CreateFieldsPanel
 			default:
-				m.CreateMode = "normal"
+				m.CreateMode = modeNormal
 			}
 
 		case "ctrl+s":
@@ -340,11 +334,11 @@ func (m *Model) handleBranchListKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 // ============================================
 
 func (m *Model) handleMergePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
-	// Modo Insert para commit message
-	if m.MergeMode == "insert" {
+	// Insert mode for commit message.
+	if m.MergeMode == modeInsert {
 		switch msg.String() {
 		case "esc":
-			m.MergeMode = "normal"
+			m.MergeMode = modeNormal
 		case "backspace":
 			m.handleBackspace()
 		case "enter":
@@ -357,7 +351,7 @@ func (m *Model) handleMergePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		return m, nil
 	}
 
-	// Modo Normal
+	// Normal mode.
 	switch msg.String() {
 	case "esc":
 		m.ViewState = ViewDashboard
@@ -375,40 +369,28 @@ func (m *Model) handleMergePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 		m.MergePanel = MergePanelCommit
 
 	case " ":
-		// Barra espaciadora - seleccionar/opción
 		switch m.MergePanel {
 		case MergePanelStrategy:
-			// Rotar entre estrategias según cursor
 			m.MergeStrategy = MergeStrategy(m.MergeCursor)
 		case MergePanelOptions:
-			// Toggle según cursor (0=remote, 1=local)
 			if m.OptionsCursor == 0 {
 				m.DeleteRemoteBranch = !m.DeleteRemoteBranch
 			} else {
 				m.DeleteLocalBranch = !m.DeleteLocalBranch
 			}
-		case MergePanelChecklist:
-			// Solo informativo, no hace nada
 		case MergePanelCommit:
-			m.MergeMode = "insert"
+			m.MergeMode = modeInsert
 		}
 		return m, nil
 
 	case "j":
-		// Navegar hacia abajo dentro del panel
 		m.navigateMergeDown()
 	case "k":
-		// Navegar hacia arriba dentro del panel
 		m.navigateMergeUp()
 
-	case "i":
+	case "i", "enter":
 		if m.MergePanel == MergePanelCommit {
-			m.MergeMode = "insert"
-		}
-
-	case "enter":
-		if m.MergePanel == MergePanelCommit {
-			m.MergeMode = "insert"
+			m.MergeMode = modeInsert
 		}
 	}
 
@@ -418,7 +400,6 @@ func (m *Model) handleMergePRKeys(msg tea.KeyMsg) (tea.Model, tea.Cmd) {
 func (m *Model) navigateMergeDown() {
 	switch m.MergePanel {
 	case MergePanelStrategy:
-		// Solo mover la flecha, NO selecciona automáticamente
 		if m.MergeCursor < 2 {
 			m.MergeCursor++
 		}
@@ -426,10 +407,6 @@ func (m *Model) navigateMergeDown() {
 		if m.OptionsCursor < 1 {
 			m.OptionsCursor++
 		}
-	case MergePanelChecklist:
-		// Solo informativo
-	case MergePanelCommit:
-		// Solo informativo
 	}
 }
 
@@ -443,17 +420,12 @@ func (m *Model) navigateMergeUp() {
 		if m.OptionsCursor > 0 {
 			m.OptionsCursor--
 		}
-	case MergePanelChecklist:
-		// Solo informativo
-	case MergePanelCommit:
-		// Solo informativo
 	}
 }
 
-// handleMergeTabKeys maneja Tab y Shift+Tab en Merge PR
+// handleMergeTabKeys handles Tab and Shift+Tab in Merge PR view.
 func (m *Model) handleMergeTabKeys(key string) (tea.Model, tea.Cmd) {
 	if key == "tab" {
-		// Avanzar panel
 		switch m.MergePanel {
 		case MergePanelStrategy:
 			m.MergePanel = MergePanelOptions
@@ -465,7 +437,6 @@ func (m *Model) handleMergeTabKeys(key string) (tea.Model, tea.Cmd) {
 			m.MergePanel = MergePanelStrategy
 		}
 	} else if key == "shift+tab" {
-		// Retroceder panel
 		switch m.MergePanel {
 		case MergePanelStrategy:
 			m.MergePanel = MergePanelCommit
@@ -481,13 +452,13 @@ func (m *Model) handleMergeTabKeys(key string) (tea.Model, tea.Cmd) {
 }
 
 // ============================================
-// ACCIONES
+// ACTIONS
 // ============================================
 
 func (m *Model) createPR() tea.Cmd {
 	return func() tea.Msg {
 		if m.TitleInput == "" {
-			return CreatePRResultMsg{Success: false, Error: "Title is required"}
+			return CreatePRResultMsg{Success: false, Error: ErrNoTitle.Error()}
 		}
 
 		args := []string{
@@ -513,7 +484,7 @@ func (m *Model) createPR() tea.Cmd {
 
 		prNum := 0
 		if re := regexp.MustCompile(`pull/(\d+)`); re.Match(out) {
-			strconv.Atoi(re.FindStringSubmatch(string(out))[1])
+			prNum, _ = strconv.Atoi(re.FindStringSubmatch(string(out))[1])
 		}
 
 		return CreatePRResultMsg{
@@ -531,14 +502,14 @@ func (m *Model) mergePR() tea.Cmd {
 		}
 
 		if prNum == 0 {
-			return MergeResultMsg{Success: false, Error: "No PR selected"}
+			return MergeResultMsg{Success: false, Error: ErrNoPRSelected.Error()}
 		}
 
 		if len(m.PRs) > 0 && m.SelectedPR < len(m.PRs) {
 			if m.PRs[m.SelectedPR].Mergeable == "CONFLICTING" {
 				return MergeResultMsg{
 					Success: false,
-					Error:   "Cannot merge: has conflicts. Press [e] to resolve.",
+					Error:   ErrPRHasConflicts.Error(),
 				}
 			}
 		}
