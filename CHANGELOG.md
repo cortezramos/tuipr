@@ -17,9 +17,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - GitHub Actions workflow for automated releases
 - Build script for local testing (`scripts/build-release.sh`)
 
-### Fixed
-- Corrected module path in go.mod
-
 ---
 
 ## [0.1.0] - 2024-07-31
