@@ -19,7 +19,6 @@ class Tuipr < Formula
       url "https://github.com/erickcortez/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_x86_64.tar.gz"
       sha256 "PLACEHOLDER_SHA256_DARWIN_AMD64"
     end
-
     if Hardware::CPU.arm?
       url "https://github.com/erickcortez/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_arm64.tar.gz"
       sha256 "PLACEHOLDER_SHA256_DARWIN_ARM64"
