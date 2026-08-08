@@ -1,4 +1,4 @@
-module github.com/ecortez/tuipr
+module github.com/erickcortez/tuipr
 
 go 1.26.4
 
