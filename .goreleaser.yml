@@ -42,7 +42,7 @@ changelog:
 brews:
   - name: tuipr
     repository:
-      owner: drkjavier
+      owner: cortezramos
       name: homebrew-tuipr
     commit_author:
       name: goreleaser
