@@ -5,29 +5,29 @@
 #
 # HOMEBREW CORE: This is a placeholder formula.
 # For actual installation, users should tap the repository:
-#   brew tap cortezramos/tuipr
+#   brew tap drkjavier/tuipr
 #   brew install tuipr
 
 class Tuipr < Formula
   desc "A keyboard-driven Pull Request Lifecycle Manager for your terminal"
-  homepage "https://github.com/cortezramos/tuipr"
+  homepage "https://github.com/drkjavier/tuipr"
   version "0.1.0"
   license "MIT"
 
   on_macos do
     if Hardware::CPU.intel?
-      url "https://github.com/cortezramos/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_x86_64.tar.gz"
+      url "https://github.com/drkjavier/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_x86_64.tar.gz"
       sha256 "92470cbf0e14880eb638e6a338a7f1f448686f4c0b77c8d2ae35ed7291d62f3b"
     end
     if Hardware::CPU.arm?
-      url "https://github.com/cortezramos/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_arm64.tar.gz"
+      url "https://github.com/drkjavier/tuipr/releases/download/v#{version}/tuipr_#{version}_Darwin_arm64.tar.gz"
       sha256 "9e6a690244c16c11b65da2bbfa967a9bd887028b445549863d3deea8f93b7209"
     end
   end
 
   on_linux do
     if Hardware::CPU.intel?
-      url "https://github.com/cortezramos/tuipr/releases/download/v#{version}/tuipr_#{version}_Linux_x86_64.tar.gz"
+      url "https://github.com/drkjavier/tuipr/releases/download/v#{version}/tuipr_#{version}_Linux_x86_64.tar.gz"
       sha256 "03ff3cac1361fae632b779602bb9029f137bbc3c7ff9e6f10dbbeca5fe2a324e"
     end
   end
