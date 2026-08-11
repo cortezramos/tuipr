@@ -1,0 +1,57 @@
+project_name: tuipr
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: ./cmd/tuipr
+    binary: tuipr
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+      - linux
+    goarch:
+      - amd64
+      - arm64
+    mod_timestamp: "{{ .CommitTimestamp }}"
+    ldflags:
+      - -s -w
+
+archives:
+  - format: tar.gz
+    name_template: "{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}"
+    format_overrides:
+      - goos: windows
+        format: zip
+
+checksum:
+  name_template: "checksums.txt"
+
+snapshot:
+  name_template: "{{ incpatch .Version }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+
+brews:
+  - name: tuipr
+    repository:
+      owner: cortezramos
+      name: homebrew-tuipr
+    commit_author:
+      name: goreleaser
+      email: goreleaser@fakemail.com
+    folder: Formula
+    homepage: "https://github.com/erickcortez/tuipr"
+    description: "A keyboard-driven Pull Request Lifecycle Manager for your terminal"
+    license: "MIT"
+    install: |
+      bin.install "tuipr"
+    test: |
+      assert_match "tuipr", shell_output("#{bin}/tuipr --help 2>&1", 1)
