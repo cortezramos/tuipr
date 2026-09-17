@@ -13,6 +13,7 @@ type Flags struct {
 	MergePR    bool
 	MergePRNum int // 0 means not specified.
 	Help       bool
+	Version    bool
 }
 
 // resetFlags creates a fresh flag set for testing.
@@ -29,6 +30,7 @@ func parseFlags() Flags {
 		fmt.Fprintf(os.Stderr, "  tuipr -c           Open Create PR view\n")
 		fmt.Fprintf(os.Stderr, "  tuipr -m           Open Merge PR view (select PR)\n")
 		fmt.Fprintf(os.Stderr, "  tuipr -m <num>     Direct merge of PR #<num>\n")
+		fmt.Fprintf(os.Stderr, "  tuipr -v           Show version\n")
 		fmt.Fprintf(os.Stderr, "  tuipr --help       Show this help\n")
 		fmt.Fprintf(os.Stderr, "\nNavigation:\n")
 		fmt.Fprintf(os.Stderr, "  1-3    Switch between panels\n")
@@ -46,6 +48,8 @@ func parseFlags() Flags {
 	createPtr := flag.Bool("c", false, "Open directly in Create PR view")
 	mergePtr := flag.Bool("m", false, "Open directly in Merge PR view")
 	helpPtr := flag.Bool("help", false, "Show help")
+	versionPtr := flag.Bool("version", false, "Show version")
+	shortVersionPtr := flag.Bool("v", false, "Show version (shorthand)")
 
 	flag.Parse()
 
@@ -63,5 +67,6 @@ func parseFlags() Flags {
 		MergePR:    *mergePtr || mergeNum > 0,
 		MergePRNum: mergeNum,
 		Help:       *helpPtr,
+		Version:    *versionPtr || *shortVersionPtr,
 	}
 }
