@@ -26,15 +26,23 @@
 
 ## 📦 Installation
 
+### Homebrew (macOS/Linux)
+
 ```bash
-git clone https://github.com/erickcortez/tuipr.git
-cd tuipr
-go install ./cmd/tuipr
+tap cortezramos/tuipr
+brew install tuipr
 ```
 
-Or build manually:
+### Go
+
 ```bash
-git clone https://github.com/erickcortez/tuipr.git
+go install github.com/cortezramos/tuipr/cmd/tuipr@latest
+```
+
+### Build from source
+
+```bash
+git clone https://github.com/cortezramos/tuipr.git
 cd tuipr
 go build -o tuipr ./cmd/tuipr
 mv tuipr /usr/local/bin/
