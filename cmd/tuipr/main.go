@@ -2,6 +2,7 @@ package main
 
 import (
 	"errors"
+	"fmt"
 	"os"
 
 	tea "github.com/charmbracelet/bubbletea"
@@ -11,9 +12,18 @@ import (
 // ErrNotTerminal is returned when tuipr is run outside a terminal.
 var ErrNotTerminal = errors.New("tuipr must be run in a terminal")
 
+// version is set at build time via ldflags: -X main.version=v1.0.0
+var version = "dev"
+
 func main() {
 	// Parse flags before starting the TUI.
 	flags := parseFlags()
+
+	// Handle --version / -v: print version and exit.
+	if flags.Version {
+		fmt.Printf("tuipr %s\n", version)
+		os.Exit(0)
+	}
 
 	// Verify we are in a terminal.
 	if !isatty.IsTerminal(os.Stdout.Fd()) {
