@@ -26,34 +26,67 @@
 
 ## 📦 Installation
 
-### Homebrew (macOS/Linux)
+You do **not** need Go installed for the recommended (Homebrew) path.
 
-```bash
-tap cortezramos/tuipr
-brew install tuipr
-```
+### Requirements (all methods)
 
-### Go
+- Terminal with 256-color support
+- GitHub CLI ([`gh`](https://cli.github.com/)) authenticated (`gh auth login`)
+
+### Homebrew — recommended (macOS/Linux, no Go required)
+
+1. Install [Homebrew](https://brew.sh) if you do not have it:
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Tap the formula and install `tuipr`:
+
+   ```bash
+   brew tap cortezramos/tuipr
+   brew install tuipr
+   ```
+
+3. Verify and authenticate GitHub CLI:
+
+   ```bash
+   tuipr --version
+   gh auth login
+   ```
+
+4. Run it:
+
+   ```bash
+   tuipr
+   ```
+
+### Alternative: Go install (requires Go 1.21+)
+
+If Homebrew is not an option, install Go first:
+
+- **macOS:** `brew install go` (if Homebrew is available) or download from [go.dev/dl](https://go.dev/dl/)
+- **Debian/Ubuntu:** `sudo apt-get install golang-go` (or use the official tarball for a newer version)
+- **Windows/other:** see [Install Go](https://go.dev/doc/install)
+
+Then:
 
 ```bash
 go install github.com/cortezramos/tuipr/cmd/tuipr@latest
+tuipr --version
 ```
 
-### Build from source
+Ensure `$(go env GOPATH)/bin` is on your `PATH`.
+
+### Alternative: Build from source (requires Go 1.21+ and Git)
 
 ```bash
 git clone https://github.com/cortezramos/tuipr.git
 cd tuipr
 go build -o tuipr ./cmd/tuipr
-mv tuipr /usr/local/bin/
+sudo mv tuipr /usr/local/bin/
+tuipr --version
 ```
-
-### Requirements
-
-- Go 1.21+
-- GitHub CLI ([`gh`](https://cli.github.com/)) authenticated
-- Git
-- Terminal with 256-color support
 
 ---
 
